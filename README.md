@@ -127,3 +127,15 @@ To stream formatted text smoothly, the incremental typing script tokenizes word 
 
 ### 💾 3. State Hydration and Session Synchronization
 React states synchronize changes to local storage on mutation, and hydrate state objects on layout mounts, preserving active threads even when users refresh their browsers.
+
+---
+
+## 🔮 Future Enhancements & Scaling (Roadmap)
+
+To scale the application, the following updates are planned:
+1. **Network Streaming (`generateContentStream`)**: Shift from awaiting full responses to network-level streaming (`for await (const chunk of result.stream)`) to output tokens instantly.
+2. **Interactive Code Sandboxes**: Integrate a web preview container (`<iframe>` for web code or WASM-based compilers like Pyodide) to let users run AI-generated code directly in-app.
+3. **Voice Synthesis (Speech Synthesis)**: Support Text-to-Speech by adding a speaker icon next to Gemini's responses, utilizing the browser's `SpeechSynthesis` API.
+4. **Model Configuration Switcher**: Add a configuration dropdown to let users dynamically toggle between models (`gemini-2.5-flash` vs. `gemini-2.5-pro`) and customize parameters.
+5. **Secure Authentication & Cloud Synchronization**: Replace local-storage caching with email/OAuth login flows (Firebase/Supabase) to securely sync chats across multiple devices.
+6. **Sidebar Search & Pinning**: Provide filters for past conversation threads and allow pinning important sessions to the sidebar.
