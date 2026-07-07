@@ -7,8 +7,10 @@ const Main = () => {
 
         const { onSent, recentPrompt, showResult, loading, resultData, input, setInput, theme, toggleTheme } = useContext(Context)
     const fileInputRef = useRef(null)
+    const recognitionRef = useRef(null)
     const [selectedImage, setSelectedImage] = useState("")
     const [isListening, setIsListening] = useState(false)
+    const [voiceStatus, setVoiceStatus] = useState("")
 
     const cards = [
         {
@@ -46,29 +48,46 @@ const Main = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
         if (!SpeechRecognition) {
-            alert('Voice input is not supported in this browser.')
+            setVoiceStatus('Voice input is not supported in this browser.')
+            return
+        }
+
+        if (isListening) {
+            recognitionRef.current?.stop()
             return
         }
 
         const recognition = new SpeechRecognition()
+        recognitionRef.current = recognition
         recognition.lang = 'en-US'
         recognition.interimResults = false
         recognition.maxAlternatives = 1
 
-        setIsListening(true)
-        recognition.start()
+        setVoiceStatus('Listening...')
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript
             setInput((prev) => prev ? `${prev} ${transcript}` : transcript)
+            setVoiceStatus('Voice added')
         }
 
-        recognition.onerror = () => {
+        recognition.onerror = (event) => {
             setIsListening(false)
+            setVoiceStatus(event.error === 'not-allowed' ? 'Microphone permission blocked.' : 'Voice input failed. Try again.')
         }
 
         recognition.onend = () => {
             setIsListening(false)
+            recognitionRef.current = null
+        }
+
+        try {
+            recognition.start()
+            setIsListening(true)
+        } catch (error) {
+            setIsListening(false)
+            setVoiceStatus('Voice input could not start.')
+            console.error(error)
         }
     }
 
@@ -130,6 +149,7 @@ const Main = () => {
                             {input ? <img onClick={() => onSent()} src={assets.send_icon} alt="Send" /> : null}
                         </div>
                     </div>
+                    {voiceStatus ? <p className="voice-status">{voiceStatus}</p> : null}
                     <p className="bottom-info">
                         Gemini is AI and can make mistakes. Please double-check responses.
                     </p>

@@ -29,9 +29,12 @@ body {
   --surface: #f0f4f9;
   --surface-2: #e6eaf1;
   --surface-hover: #e2e6eb;
+  --sidebar-bg: #f0f4f9;
+  --sidebar-border: transparent;
   --card: #f0f0f9;
   --card-hover: #dfe4ea;
   --icon-bg: #ffffff;
+  --icon-filter: none;
   --shadow: rgba(0, 0, 0, 0.08);
   min-height: 100vh;
   width: 100%;
@@ -48,9 +51,12 @@ body {
   --surface: #1b1f24;
   --surface-2: #252a31;
   --surface-hover: #303640;
+  --sidebar-bg: #15191f;
+  --sidebar-border: #343b46;
   --card: #1f242b;
   --card-hover: #2b323b;
   --icon-bg: #f1f3f4;
+  --icon-filter: brightness(0) invert(1);
   --shadow: rgba(0, 0, 0, 0.32);
 }
 

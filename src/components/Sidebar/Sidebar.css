@@ -4,7 +4,8 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background-color: var(--surface);
+  background-color: var(--sidebar-bg, var(--surface));
+  border-right: 1px solid var(--sidebar-border, transparent);
   padding: 25px 15px;
   transition: width 0.2s ease;
   overflow: hidden;
@@ -17,6 +18,7 @@
 
 .sidebar img {
   width: 20px;
+  filter: var(--icon-filter);
 }
 
 .sidebar .menu {
