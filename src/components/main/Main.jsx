@@ -1,11 +1,14 @@
-import React, { useContext } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import './Main.css'
 import { assets } from '../../assets/assets'
 import { Context } from '../../context/Context'
 
 const Main = () => {
 
-        const { onSent, recentPrompt, showResult, loading, resultData, input, setInput } = useContext(Context)
+        const { onSent, recentPrompt, showResult, loading, resultData, input, setInput, theme, toggleTheme } = useContext(Context)
+    const fileInputRef = useRef(null)
+    const [selectedImage, setSelectedImage] = useState("")
+    const [isListening, setIsListening] = useState(false)
 
     const cards = [
         {
@@ -26,11 +29,59 @@ const Main = () => {
         },
     ]
 
+    const handleImageClick = () => {
+        fileInputRef.current?.click()
+    }
+
+    const handleImageChange = (event) => {
+        const file = event.target.files?.[0]
+
+        if (!file) return
+
+        setSelectedImage(file.name)
+        setInput((prev) => prev ? `${prev} [Image: ${file.name}]` : `[Image: ${file.name}]`)
+    }
+
+    const handleVoiceClick = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+        if (!SpeechRecognition) {
+            alert('Voice input is not supported in this browser.')
+            return
+        }
+
+        const recognition = new SpeechRecognition()
+        recognition.lang = 'en-US'
+        recognition.interimResults = false
+        recognition.maxAlternatives = 1
+
+        setIsListening(true)
+        recognition.start()
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript
+            setInput((prev) => prev ? `${prev} ${transcript}` : transcript)
+        }
+
+        recognition.onerror = () => {
+            setIsListening(false)
+        }
+
+        recognition.onend = () => {
+            setIsListening(false)
+        }
+    }
+
     return (
         <div className='main'>
             <div className="nav">
                 <p>Gemini</p>
-                <img src={assets.user_icon} alt="" />
+                <div className="nav-actions">
+                    <button type="button" onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
+                        {theme === 'light' ? 'Dark' : 'Light'}
+                    </button>
+                    <img src={assets.user_icon} alt="" />
+                </div>
             </div>
             <div className="main-container">
                 {!showResult ? (
@@ -73,8 +124,9 @@ const Main = () => {
                     <div className="search-box">
                         <input onChange={(e)=>setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onSent()} value={input} type="text" placeholder='Ask Gemini' />
                         <div>
-                            <img src={assets.gallery_icon} alt="" />
-                            <img src={assets.mic_icon} alt="" />
+                            <input ref={fileInputRef} onChange={handleImageChange} className="image-input" type="file" accept="image/*" />
+                            <img onClick={handleImageClick} src={assets.gallery_icon} alt="Add image" title={selectedImage || 'Add image'} />
+                            <img onClick={handleVoiceClick} className={isListening ? 'listening' : ''} src={assets.mic_icon} alt="Voice input" title="Voice input" />
                             {input ? <img onClick={() => onSent()} src={assets.send_icon} alt="Send" /> : null}
                         </div>
                     </div>

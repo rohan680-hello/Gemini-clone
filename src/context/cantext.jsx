@@ -4,6 +4,7 @@ import { Context } from "./Context";
 
 const ContextProvider = (props) => {
 
+    const [theme, setTheme] = useState("light");
     const [input,setInput] = useState("");
     const [recentPrompt, setRecentPrompt] = useState("");
     const [prevPrompts, setPrevPrompts] = useState([]);
@@ -27,6 +28,10 @@ const ContextProvider = (props) => {
         setResultData("");
         setRecentPrompt("");
         setInput("");
+    }
+
+    const toggleTheme = () => {
+        setTheme((prev) => prev === "light" ? "dark" : "light");
     }
 
     const onSent = async (prompt) => {
@@ -70,13 +75,17 @@ const ContextProvider = (props) => {
         loading,
         resultData,
         newChat,
+        theme,
+        toggleTheme,
         input,
         setInput
     }
 
     return (
         <Context.Provider value={contextValue}>
-            {props.children}
+            <div className={`app-shell ${theme}`}>
+                {props.children}
+            </div>
         </Context.Provider>
     )
 }

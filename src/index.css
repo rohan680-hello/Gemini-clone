@@ -11,6 +11,7 @@ body {
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
+  background: var(--bg);
 }
 
 #root{
@@ -18,6 +19,39 @@ body {
   width: 100%;
   display: flex;
   animation: fadeIn 1.5s;
+}
+
+.app-shell {
+  --bg: #ffffff;
+  --text: #282828;
+  --muted: #585858;
+  --soft-text: #c4c7c5;
+  --surface: #f0f4f9;
+  --surface-2: #e6eaf1;
+  --surface-hover: #e2e6eb;
+  --card: #f0f0f9;
+  --card-hover: #dfe4ea;
+  --icon-bg: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.08);
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-shell.dark {
+  --bg: #101214;
+  --text: #f1f3f4;
+  --muted: #c7cbd1;
+  --soft-text: #7d858f;
+  --surface: #1b1f24;
+  --surface-2: #252a31;
+  --surface-hover: #303640;
+  --card: #1f242b;
+  --card-hover: #2b323b;
+  --icon-bg: #f1f3f4;
+  --shadow: rgba(0, 0, 0, 0.32);
 }
 
 @keyframes fadeIn {
