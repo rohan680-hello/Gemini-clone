@@ -1,5 +1,7 @@
 # Premium Google Gemini Clone
 
+⚡ **Live Demo:** [https://gemini-clone-ten-eosin.vercel.app/](https://gemini-clone-ten-eosin.vercel.app/)
+
 A production-grade, highly optimized Gemini Clone built using **React 19**, **Vite 8**, and the **Google Generative AI SDK**. This application mimics the interface of Google Gemini, providing a fast, responsive, and aesthetically polished conversational experience.
 
 ---
