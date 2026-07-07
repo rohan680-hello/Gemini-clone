@@ -5,7 +5,7 @@ import { Context } from '../../context/Context'
 
 const Main = () => {
 
-        const { onSent, recentPrompt, showResult, loading, resultData, input, setInput, theme, toggleTheme } = useContext(Context)
+        const { onSent, recentPrompt, showResult, loading, resultData, input, setInput, theme, toggleTheme, userName, logout, activePanel, prevPrompts, clearHistory } = useContext(Context)
     const fileInputRef = useRef(null)
     const recognitionRef = useRef(null)
     const [selectedImage, setSelectedImage] = useState("")
@@ -91,22 +91,78 @@ const Main = () => {
         }
     }
 
+    const renderPanel = () => {
+        if (activePanel === "help") {
+            return (
+                <div className="info-panel">
+                    <h2>Help</h2>
+                    <p>Type a prompt and press Enter or the send icon. Use the mic icon for voice input and the image icon to attach an image name to your prompt.</p>
+                    <p>Click any suggestion card to send that prompt instantly.</p>
+                </div>
+            )
+        }
+
+        if (activePanel === "history") {
+            return (
+                <div className="info-panel">
+                    <div className="panel-heading">
+                        <h2>History</h2>
+                        <button type="button" onClick={clearHistory}>Clear</button>
+                    </div>
+                    {prevPrompts.length ? (
+                        <div className="history-list">
+                            {prevPrompts.map((prompt, index) => (
+                                <button type="button" key={`${prompt}-${index}`} onClick={() => onSent(prompt)}>
+                                    {prompt}
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <p>No history yet.</p>
+                    )}
+                </div>
+            )
+        }
+
+        if (activePanel === "settings") {
+            return (
+                <div className="info-panel">
+                    <h2>Settings</h2>
+                    <div className="setting-row">
+                        <span>Theme</span>
+                        <button type="button" onClick={toggleTheme}>{theme === 'light' ? 'Dark mode' : 'Light mode'}</button>
+                    </div>
+                    <div className="setting-row">
+                        <span>Account</span>
+                        <button type="button" onClick={logout}>Logout</button>
+                    </div>
+                </div>
+            )
+        }
+
+        return null
+    }
+
     return (
         <div className='main'>
             <div className="nav">
                 <p>Gemini</p>
                 <div className="nav-actions">
+                    <span className="user-name">{userName}</span>
                     <button type="button" onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
                         {theme === 'light' ? 'Dark' : 'Light'}
                     </button>
+                    <button type="button" onClick={logout} className="logout-btn">Logout</button>
                     <img src={assets.user_icon} alt="" />
                 </div>
             </div>
             <div className="main-container">
-                {!showResult ? (
+                {activePanel ? (
+                    renderPanel()
+                ) : !showResult ? (
                     <>
                         <div className="greet">
-                            <p><span>What's the vibe, Rohan?</span></p>
+                            <p><span>What's the vibe, {userName}?</span></p>
                             <p>How can I help you today?</p>
                         </div>
                         <div className="cards">

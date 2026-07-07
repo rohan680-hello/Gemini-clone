@@ -60,6 +60,56 @@ body {
   --shadow: rgba(0, 0, 0, 0.32);
 }
 
+.login-page {
+  min-height: 100vh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  padding: 20px;
+}
+
+.login-box {
+  width: min(100%, 380px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--sidebar-border);
+}
+
+.login-brand {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.login-box h1 {
+  font-size: 34px;
+}
+
+.login-box input {
+  border: none;
+  outline: none;
+  background: var(--bg);
+  color: var(--text);
+  padding: 14px;
+  border-radius: 50px;
+  font-size: 16px;
+}
+
+.login-box button {
+  border: none;
+  background: #4b90ff;
+  color: white;
+  padding: 13px;
+  border-radius: 50px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
 @keyframes fadeIn {
   0%{
     opacity: 0;

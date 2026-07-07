@@ -5,6 +5,8 @@ import { Context } from "./Context";
 const ContextProvider = (props) => {
 
     const [theme, setTheme] = useState("light");
+    const [userName, setUserName] = useState(() => localStorage.getItem("gemini_user") || "");
+    const [activePanel, setActivePanel] = useState("");
     const [input,setInput] = useState("");
     const [recentPrompt, setRecentPrompt] = useState("");
     const [prevPrompts, setPrevPrompts] = useState([]);
@@ -27,11 +29,36 @@ const ContextProvider = (props) => {
         setShowResult(false);
         setResultData("");
         setRecentPrompt("");
+        setActivePanel("");
         setInput("");
     }
 
     const toggleTheme = () => {
         setTheme((prev) => prev === "light" ? "dark" : "light");
+    }
+
+    const login = (name) => {
+        const cleanName = name.trim();
+
+        if (!cleanName) return;
+
+        localStorage.setItem("gemini_user", cleanName);
+        setUserName(cleanName);
+    }
+
+    const logout = () => {
+        localStorage.removeItem("gemini_user");
+        setUserName("");
+        newChat();
+    }
+
+    const openPanel = (panel) => {
+        setActivePanel(panel);
+        setShowResult(false);
+    }
+
+    const clearHistory = () => {
+        setPrevPrompts([]);
     }
 
     const onSent = async (prompt) => {
@@ -41,6 +68,7 @@ const ContextProvider = (props) => {
         setResultData("");
         setLoading(true);
         setShowResult(true);
+        setActivePanel("");
         
         let response;
 
@@ -77,6 +105,12 @@ const ContextProvider = (props) => {
         newChat,
         theme,
         toggleTheme,
+        userName,
+        login,
+        logout,
+        activePanel,
+        openPanel,
+        clearHistory,
         input,
         setInput
     }
