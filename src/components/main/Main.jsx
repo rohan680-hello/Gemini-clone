@@ -1,14 +1,14 @@
-import React, { useContext, useRef, useState } from 'react'
+import React, { useContext, useRef, useState, useEffect } from 'react'
 import './Main.css'
 import { assets } from '../../assets/assets'
 import { Context } from '../../context/Context'
 
 const Main = () => {
 
-        const { onSent, recentPrompt, showResult, loading, resultData, input, setInput, theme, toggleTheme, userName, logout, activePanel, prevPrompts, clearHistory } = useContext(Context)
+    const { onSent, showResult, loading, input, setInput, theme, toggleTheme, userName, logout, activePanel, attachedImage, setAttachedImage, threads, currentThreadId } = useContext(Context)
     const fileInputRef = useRef(null)
     const recognitionRef = useRef(null)
-    const [selectedImage, setSelectedImage] = useState("")
+    const resultEndRef = useRef(null)
     const [isListening, setIsListening] = useState(false)
     const [voiceStatus, setVoiceStatus] = useState("")
 
@@ -31,24 +31,87 @@ const Main = () => {
         },
     ]
 
+    const activeThread = threads.find(t => t.id === currentThreadId)
+    const currentMessages = activeThread ? activeThread.messages : []
+
+    useEffect(() => {
+        resultEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [currentMessages, loading])
+
+    useEffect(() => {
+        const handleGlobalClick = (event) => {
+            const target = event.target;
+            if (target && target.classList.contains("copy-code-btn")) {
+                const encodedCode = target.getAttribute("data-code");
+                if (encodedCode) {
+                    try {
+                        const decodedCode = decodeURIComponent(escape(atob(encodedCode)));
+                        navigator.clipboard.writeText(decodedCode);
+                        
+                        const originalText = target.innerText;
+                        target.innerText = "Copied!";
+                        target.classList.add("copied");
+                        
+                        setTimeout(() => {
+                            target.innerText = originalText;
+                            target.classList.remove("copied");
+                        }, 2000);
+                    } catch (e) {
+                        console.error("Failed to copy code:", e);
+                    }
+                }
+            }
+        };
+
+        document.addEventListener("click", handleGlobalClick);
+        return () => {
+            document.removeEventListener("click", handleGlobalClick);
+        };
+    }, []);
+
     const handleImageClick = () => {
         fileInputRef.current?.click()
     }
 
     const handleImageChange = (event) => {
         const file = event.target.files?.[0]
-
         if (!file) return
 
-        setSelectedImage(file.name)
-        setInput((prev) => prev ? `${prev} [Image: ${file.name}]` : `[Image: ${file.name}]`)
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64Data = reader.result.split(',')[1];
+            setAttachedImage({
+                inlineData: {
+                    data: base64Data,
+                    mimeType: file.type
+                },
+                url: reader.result,
+                name: file.name
+            });
+        };
+        reader.readAsDataURL(file);
+        event.target.value = "";
     }
 
-    const handleVoiceClick = () => {
+    const getVoiceErrorMessage = (error) => {
+        if (error === 'not-allowed') return 'Microphone permission blocked.'
+        if (error === 'no-speech') return 'No speech detected. Try again.'
+        if (error === 'audio-capture') return 'No microphone found.'
+        if (error === 'network') return 'Voice service network error. Try Chrome or check your internet.'
+
+        return `Voice input failed: ${error}`
+    }
+
+    const handleVoiceClick = async () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
         if (!SpeechRecognition) {
             setVoiceStatus('Voice input is not supported in this browser.')
+            return
+        }
+
+        if (!window.isSecureContext) {
+            setVoiceStatus('Voice needs localhost or HTTPS.')
             return
         }
 
@@ -57,9 +120,19 @@ const Main = () => {
             return
         }
 
+        try {
+            if (navigator.mediaDevices?.getUserMedia) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+                stream.getTracks().forEach((track) => track.stop())
+            }
+        } catch (error) {
+            setVoiceStatus(error.name === 'NotAllowedError' ? 'Microphone permission blocked.' : 'Microphone could not start.')
+            return
+        }
+
         const recognition = new SpeechRecognition()
         recognitionRef.current = recognition
-        recognition.lang = 'en-US'
+        recognition.lang = 'en-IN'
         recognition.interimResults = false
         recognition.maxAlternatives = 1
 
@@ -73,7 +146,7 @@ const Main = () => {
 
         recognition.onerror = (event) => {
             setIsListening(false)
-            setVoiceStatus(event.error === 'not-allowed' ? 'Microphone permission blocked.' : 'Voice input failed. Try again.')
+            setVoiceStatus(getVoiceErrorMessage(event.error))
         }
 
         recognition.onend = () => {
@@ -106,20 +179,9 @@ const Main = () => {
             return (
                 <div className="info-panel">
                     <div className="panel-heading">
-                        <h2>History</h2>
-                        <button type="button" onClick={clearHistory}>Clear</button>
+                        <h2>History Info</h2>
+                        <p>Your conversation history is fully synced locally in the sidebar panel. You can select, run, and delete individual chats.</p>
                     </div>
-                    {prevPrompts.length ? (
-                        <div className="history-list">
-                            {prevPrompts.map((prompt, index) => (
-                                <button type="button" key={`${prompt}-${index}`} onClick={() => onSent(prompt)}>
-                                    {prompt}
-                                </button>
-                            ))}
-                        </div>
-                    ) : (
-                        <p>No history yet.</p>
-                    )}
                 </div>
             )
         }
@@ -148,11 +210,10 @@ const Main = () => {
             <div className="nav">
                 <p>Gemini</p>
                 <div className="nav-actions">
-                    <span className="user-name">{userName}</span>
                     <button type="button" onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
                         {theme === 'light' ? 'Dark' : 'Light'}
                     </button>
-                    <button type="button" onClick={logout} className="logout-btn">Logout</button>
+                    <span className="user-name">{userName}</span>
                     <img src={assets.user_icon} alt="" />
                 </div>
             </div>
@@ -176,33 +237,54 @@ const Main = () => {
                     </>
                 ) : (
                     <div className="result">
-                        <div className="result-title">
-                            <img src={assets.user_icon} alt="" />
-                            <p>{recentPrompt}</p>
-                        </div>
-                        <div className="result-data">
-                            <img src={assets.gemini_icon} alt="" />
-                            {loading ? (
-                                <div className="loader">
-                                    <hr />
-                                    <hr />
-                                    <hr />
-                                </div>
-                            ) : (
-                                <div className="result-text" dangerouslySetInnerHTML={{ __html: resultData }} />
-                            )}
-                        </div>
+                        {currentMessages.map((msg, index) => {
+                            if (msg.role === 'user') {
+                                return (
+                                    <div key={index} className="result-title chat-message">
+                                        <img src={assets.user_icon} alt="User Avatar" />
+                                        <div className="prompt-content">
+                                            {msg.image && <img className="prompt-attached-image" src={msg.image} alt="Uploaded prompt asset" />}
+                                            <p>{msg.text}</p>
+                                        </div>
+                                    </div>
+                                )
+                            } else {
+                                return (
+                                    <div key={index} className="result-data chat-message">
+                                        <img src={assets.gemini_icon} alt="Gemini Avatar" />
+                                        {loading && index === currentMessages.length - 1 && !msg.text ? (
+                                            <div className="loader">
+                                                <hr />
+                                                <hr />
+                                                <hr />
+                                            </div>
+                                        ) : (
+                                            <div className="result-text" dangerouslySetInnerHTML={{ __html: msg.text }} />
+                                        )}
+                                    </div>
+                                )
+                            }
+                        })}
+                        <div ref={resultEndRef} />
                     </div>
                 )}
 
                 <div className="main-bottom">
+                    {attachedImage && (
+                        <div className="image-preview-container">
+                            <img src={attachedImage.url} alt="Attached preview" />
+                            <button type="button" className="remove-image-btn" onClick={() => setAttachedImage(null)} aria-label="Remove image">
+                                &times;
+                            </button>
+                        </div>
+                    )}
                     <div className="search-box">
                         <input onChange={(e)=>setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onSent()} value={input} type="text" placeholder='Ask Gemini' />
                         <div>
                             <input ref={fileInputRef} onChange={handleImageChange} className="image-input" type="file" accept="image/*" />
-                            <img onClick={handleImageClick} src={assets.gallery_icon} alt="Add image" title={selectedImage || 'Add image'} />
+                            <img onClick={handleImageClick} src={assets.gallery_icon} alt="Add image" title={attachedImage ? attachedImage.name : 'Add image'} />
                             <img onClick={handleVoiceClick} className={isListening ? 'listening' : ''} src={assets.mic_icon} alt="Voice input" title="Voice input" />
-                            {input ? <img onClick={() => onSent()} src={assets.send_icon} alt="Send" /> : null}
+                            {(input || attachedImage) ? <img onClick={() => onSent()} src={assets.send_icon} alt="Send" /> : null}
                         </div>
                     </div>
                     {voiceStatus ? <p className="voice-status">{voiceStatus}</p> : null}

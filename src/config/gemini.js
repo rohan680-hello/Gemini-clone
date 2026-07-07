@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-async function runChat(prompt) {
+async function runChat(prompt, imagePart = null, history = []) {
   if (!API_KEY) {
     throw new Error("Missing VITE_GEMINI_API_KEY in .env");
   }
@@ -19,12 +19,12 @@ async function runChat(prompt) {
 
   const chat = model.startChat({
     generationConfig,
-    history: [],
+    history: history,
   });
 
-  const result = await chat.sendMessage(prompt);
-  const response = result.response;
-  return response.text();
+  const payload = imagePart ? [prompt, imagePart] : prompt;
+  const result = await chat.sendMessage(payload);
+  return result.response.text();
 }
 
 export default runChat;
