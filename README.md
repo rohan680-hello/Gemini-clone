@@ -102,7 +102,7 @@ npm run build
 
 ---
 
-## 💡 Key Design Patterns (Great for Interviews)
+## 💡 Key Engineering Decisions & Design Patterns
 
 ### 🚀 1. Performance-Optimized Event Delegation
 Instead of attaching individual click event handlers to every generated code copy button (which creates memory overhead and potential memory leaks in React), we registered a **single global click event listener** at the document level:
